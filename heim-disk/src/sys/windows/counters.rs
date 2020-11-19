@@ -15,6 +15,7 @@ pub struct IoCounters {
     write_bytes: Information,
     read_time: Time,
     write_time: Time,
+    busy_time: Time,
 }
 
 impl IoCounters {
@@ -45,6 +46,10 @@ impl IoCounters {
     pub fn write_time(&self) -> Time {
         self.write_time
     }
+
+    pub fn busy_time(&self) -> Time {
+        self.busy_time
+    }
 }
 
 fn inner_stream<F>(mut filter: F) -> impl Iterator<Item = Result<IoCounters>>
@@ -64,6 +69,7 @@ where
                 let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
                 let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
                 let write_time = unsafe { *perf.WriteTime.QuadPart() as f64 };
+                let idle_time = unsafe { *perf.IdleTime.QuadPart() as f64 };
 
                 let counters = IoCounters {
                     volume_path: path,
@@ -75,6 +81,7 @@ where
                     // https://github.com/giampaolo/psutil/issues/1012
                     read_time: Time::new::<time::microsecond>(read_time * 10.0),
                     write_time: Time::new::<time::microsecond>(write_time * 10.0),
+                    busy_time: Time::new::<time::microsecond>(1000.0 - (idle_time * 10.0))
                 };
 
                 Some(Ok(counters))

@@ -14,6 +14,7 @@ pub struct IoCounters {
     write_bytes: Information,
     read_time: Time,
     write_time: Time,
+    busy_time: Time,
 }
 
 impl IoCounters {
@@ -44,6 +45,10 @@ impl IoCounters {
     pub fn write_time(&self) -> Time {
         self.write_time
     }
+
+    pub fn busy_time(&self) -> Time {
+        self.busy_time
+    }
 }
 
 fn filter_map_block_devices(device: iokit::IoObject) -> Result<Option<IoCounters>> {
@@ -68,6 +73,7 @@ fn filter_map_block_devices(device: iokit::IoObject) -> Result<Option<IoCounters
         write_bytes: Information::new::<information::byte>(stats.get_i64("Bytes (Write)")? as u64),
         read_time: Time::new::<time::nanosecond>(stats.get_i64("Total Time (Read)")? as f64),
         write_time: Time::new::<time::nanosecond>(stats.get_i64("Total Time (Write)")? as f64),
+        busy_time: Time::new::<time::nanosecond>(0.0),
     }))
 }
 

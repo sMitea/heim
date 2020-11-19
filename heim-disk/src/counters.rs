@@ -1,6 +1,7 @@
 use std::ffi::OsStr;
 use std::fmt;
 
+use heim_common::units::Time;
 use heim_common::prelude::*;
 use heim_common::units::Information;
 
@@ -46,6 +47,12 @@ impl IoCounters {
     pub fn write_bytes(&self) -> Information {
         self.as_ref().write_bytes()
     }
+
+
+    /// Returns number of bytes written.
+    pub fn busy_time(&self) -> Time {
+        self.as_ref().busy_time()
+    }
 }
 
 impl fmt::Debug for IoCounters {
@@ -56,6 +63,7 @@ impl fmt::Debug for IoCounters {
             .field("write_count", &self.write_count())
             .field("read_bytes", &self.read_bytes())
             .field("write_bytes", &self.write_bytes())
+            .field("busy_time", &self.busy_time())
             .finish()
     }
 }
