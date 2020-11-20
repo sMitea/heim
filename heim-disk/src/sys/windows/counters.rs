@@ -81,10 +81,7 @@ where
                 let idle_time2 = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
                 let base_time = base_time2.duration_since(base_time1).unwrap().as_micros() as f64;
                 let idle_time = idle_time2 - idle_time1;
-                let mut busy_time = 1.0 - (idle_time / base_time);
-                if busy_time < 0.0 {
-                    busy_time = 0.0;
-                }
+                let mut busy_time = (idle_time / base_time);
 
                 let read_bytes = unsafe { *perf.BytesRead.QuadPart() as u64 };
                 let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
