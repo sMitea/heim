@@ -56,6 +56,8 @@ fn inner_stream<F>(mut filter: F) -> impl Iterator<Item = Result<IoCounters>>
 where
     F: FnMut(&Path) -> bool + 'static,
 {
+    use std::time::*;
+
     bindings::Volumes::new().filter_map(move |try_volume| {
         match try_volume {
             Ok(path) if filter(&path) => {
@@ -69,10 +71,19 @@ where
                 let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
                 let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
                 let write_time = unsafe { *perf.WriteTime.QuadPart() as f64 };
-                // https://github.com/PKRoma/ProcessHacker/blob/cc037edc61f924590e5b23e89527604f74ef5919/plugins/HardwareDevices/disk.c#L115
-                let idle_time = unsafe { *perf.IdleTime.QuadPart() as f64 };
-                let query_time = unsafe{ *perf.QueryTime.QuadPart() as f64};
-                let active_time = (query_time - idle_time) / query_time * 100.00;
+
+                // https://docs.microsoft.com/zh-tw/archive/blogs/askcore/windows-performance-monitor-disk-counters-explained
+                let base_time1 = SystemTime::now();
+                let idle_time1 = unsafe { *perf.IdleTime.QuadPart() as f64 };
+                std::thread::sleep(Duration::from_secs(1));
+                let base_time2 = SystemTime::now();
+                let idle_time2 = unsafe { *perf.IdleTime.QuadPart() as f64 };
+                let base_time = base_time2.duration_since(base_time1).unwrap().as_millis() as f64;
+                let idle_time = idle_time2 - idle_time1;
+                let mut busy_time = 1.0 - (idle_time / base_time);
+                if busy_time < 0.0 {
+                    busy_time = 0.0;
+                }
 
                 let counters = IoCounters {
                     volume_path: path,
@@ -84,7 +95,7 @@ where
                     // https://github.com/giampaolo/psutil/issues/1012
                     read_time: Time::new::<time::microsecond>(read_time * 10.0),
                     write_time: Time::new::<time::microsecond>(write_time * 10.0),
-                    busy_time: active_time
+                    busy_time
                 };
 
                 Some(Ok(counters))
