@@ -66,24 +66,30 @@ where
                     Ok(None) => return None,
                     Err(e) => return Some(Err(e)),
                 };
-
-                let read_bytes = unsafe { *perf.BytesRead.QuadPart() as u64 };
-                let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
-                let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
-                let write_time = unsafe { *perf.WriteTime.QuadPart() as f64 };
-
                 // https://docs.microsoft.com/zh-tw/archive/blogs/askcore/windows-performance-monitor-disk-counters-explained
                 let base_time1 = SystemTime::now();
-                let idle_time1 = unsafe { *perf.IdleTime.QuadPart() as f64 };
+                let idle_time1 = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
                 std::thread::sleep(Duration::from_secs(1));
+
+                let perf = match bindings::disk_performance(&path) {
+                    Ok(Some(perf)) => perf,
+                    Ok(None) => return None,
+                    Err(e) => return Some(Err(e)),
+                };
+
                 let base_time2 = SystemTime::now();
-                let idle_time2 = unsafe { *perf.IdleTime.QuadPart() as f64 };
-                let base_time = base_time2.duration_since(base_time1).unwrap().as_millis() as f64;
+                let idle_time2 = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
+                let base_time = base_time2.duration_since(base_time1).unwrap().as_micros() as f64;
                 let idle_time = idle_time2 - idle_time1;
                 let mut busy_time = 1.0 - (idle_time / base_time);
                 if busy_time < 0.0 {
                     busy_time = 0.0;
                 }
+
+                let read_bytes = unsafe { *perf.BytesRead.QuadPart() as u64 };
+                let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
+                let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
+                let write_time = unsafe { *perf.WriteTime.QuadPart() as f64 };
 
                 let counters = IoCounters {
                     volume_path: path,
