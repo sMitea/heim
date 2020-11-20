@@ -1,7 +1,7 @@
 use std::ffi::OsStr;
 use std::fmt;
 
-use heim_common::prelude::*;
+use heim_common::{units::Time, prelude::*};
 use heim_common::units::Information;
 
 use crate::sys;
@@ -47,9 +47,14 @@ impl IoCounters {
         self.as_ref().write_bytes()
     }
 
-    /// Returns time of ratio busy.
-    pub fn busy_time(&self) -> f64 {
+    /// Returns time of busy.
+    pub fn busy_time(&self) -> Time {
         self.as_ref().busy_time()
+    }
+
+    /// Returns time of idle.
+    pub fn idle_time(&self) -> Time {
+        self.as_ref().idle_time()
     }
 }
 
@@ -62,6 +67,7 @@ impl fmt::Debug for IoCounters {
             .field("read_bytes", &self.read_bytes())
             .field("write_bytes", &self.write_bytes())
             .field("busy_time", &self.busy_time())
+            .field("idle_time", &self.idle_time())
             .finish()
     }
 }

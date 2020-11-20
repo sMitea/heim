@@ -15,7 +15,7 @@ pub struct IoCounters {
     write_bytes: Information,
     read_time: Time,
     write_time: Time,
-    busy_time: f64,
+    idle_time: Time,
 }
 
 impl IoCounters {
@@ -47,8 +47,12 @@ impl IoCounters {
         self.write_time
     }
 
-    pub fn busy_time(&self) -> f64 {
-        self.busy_time
+    pub fn idle_time(&self) -> Time {
+        self.idle_time
+    }
+
+    pub fn busy_time(&self) -> Time{
+        Time::new::<time::nanosecond>(0.0)
     }
 }
 
@@ -56,8 +60,6 @@ fn inner_stream<F>(mut filter: F) -> impl Iterator<Item = Result<IoCounters>>
 where
     F: FnMut(&Path) -> bool + 'static,
 {
-    use std::time::*;
-
     bindings::Volumes::new().filter_map(move |try_volume| {
         match try_volume {
             Ok(path) if filter(&path) => {
@@ -67,25 +69,7 @@ where
                     Err(e) => return Some(Err(e)),
                 };
                 // https://docs.microsoft.com/zh-tw/archive/blogs/askcore/windows-performance-monitor-disk-counters-explained
-                let base_time1 = SystemTime::now();
-                let idle_time1 = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
-                std::thread::sleep(Duration::from_secs(1));
-
-                let perf = match bindings::disk_performance(&path) {
-                    Ok(Some(perf)) => perf,
-                    Ok(None) => return None,
-                    Err(e) => return Some(Err(e)),
-                };
-
-                let base_time2 = SystemTime::now();
-                let idle_time2 = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
-                let base_time = base_time2.duration_since(base_time1).unwrap().as_micros() as f64;
-                let idle_time = idle_time2 - idle_time1;
-                let mut busy_time = 100.00 - (idle_time / base_time);
-                if busy_time < 0.0 {
-                    busy_time = 0.0;
-                }
-
+                let idle_time = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
                 let read_bytes = unsafe { *perf.BytesRead.QuadPart() as u64 };
                 let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
                 let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
@@ -101,7 +85,7 @@ where
                     // https://github.com/giampaolo/psutil/issues/1012
                     read_time: Time::new::<time::microsecond>(read_time * 10.0),
                     write_time: Time::new::<time::microsecond>(write_time * 10.0),
-                    busy_time
+                    idle_time: Time::new::<time::microsecond>(idle_time * 10.0),
                 };
 
                 Some(Ok(counters))
