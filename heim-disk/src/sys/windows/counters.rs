@@ -69,7 +69,10 @@ where
                 let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
                 let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
                 let write_time = unsafe { *perf.WriteTime.QuadPart() as f64 };
+                // https://github.com/PKRoma/ProcessHacker/blob/cc037edc61f924590e5b23e89527604f74ef5919/plugins/HardwareDevices/disk.c#L115
                 let idle_time = unsafe { *perf.IdleTime.QuadPart() as f64 };
+                let query_time = unsafe{ *perf.QueryTime.QuadPart() as f64};
+                let active_time = (query_time - idle_time) / query_time * 100.00;
 
                 let counters = IoCounters {
                     volume_path: path,
@@ -81,7 +84,7 @@ where
                     // https://github.com/giampaolo/psutil/issues/1012
                     read_time: Time::new::<time::microsecond>(read_time * 10.0),
                     write_time: Time::new::<time::microsecond>(write_time * 10.0),
-                    busy_time: Time::new::<time::microsecond>(1000.0 - (idle_time * 10.0))
+                    busy_time: Time::new::<time::microsecond>(active_time)
                 };
 
                 Some(Ok(counters))

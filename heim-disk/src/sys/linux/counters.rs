@@ -96,7 +96,7 @@ impl FromStr for IoCounters {
         let busy_time = parts
             .try_parse_next()
             .map(|seconds: u64| Time::new::<time::second>(seconds as f64))?;
-
+        
         Ok(IoCounters {
             name,
             read_count,

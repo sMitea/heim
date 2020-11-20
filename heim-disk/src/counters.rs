@@ -48,8 +48,7 @@ impl IoCounters {
         self.as_ref().write_bytes()
     }
 
-
-    /// Returns number of bytes written.
+    /// Returns time of ratio busy.
     pub fn busy_time(&self) -> Time {
         self.as_ref().busy_time()
     }
