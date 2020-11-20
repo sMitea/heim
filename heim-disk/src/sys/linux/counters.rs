@@ -27,7 +27,7 @@ pub struct IoCounters {
     write_count: u64,
     read_bytes: Information,
     write_bytes: Information,
-    busy_time: Time,
+    busy_time: f64,
     read_merged_count: u64,
     write_merged_count: u64,
 }
@@ -53,7 +53,7 @@ impl IoCounters {
         self.write_bytes
     }
 
-    pub fn busy_time(&self) -> Time {
+    pub fn busy_time(&self) -> f64 {
         self.busy_time
     }
 
@@ -95,7 +95,7 @@ impl FromStr for IoCounters {
         let mut parts = parts.skip(2);
         let busy_time = parts
             .try_parse_next()
-            .map(|seconds: u64| Time::new::<time::second>(seconds as f64))?;
+            .map(|seconds: u64| seconds as f64)?;
         
         Ok(IoCounters {
             name,

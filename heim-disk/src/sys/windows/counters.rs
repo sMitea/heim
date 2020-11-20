@@ -15,7 +15,7 @@ pub struct IoCounters {
     write_bytes: Information,
     read_time: Time,
     write_time: Time,
-    busy_time: Time,
+    busy_time: f64,
 }
 
 impl IoCounters {
@@ -47,7 +47,7 @@ impl IoCounters {
         self.write_time
     }
 
-    pub fn busy_time(&self) -> Time {
+    pub fn busy_time(&self) -> f64 {
         self.busy_time
     }
 }
@@ -84,7 +84,7 @@ where
                     // https://github.com/giampaolo/psutil/issues/1012
                     read_time: Time::new::<time::microsecond>(read_time * 10.0),
                     write_time: Time::new::<time::microsecond>(write_time * 10.0),
-                    busy_time: Time::new::<time::microsecond>(active_time)
+                    busy_time: active_time
                 };
 
                 Some(Ok(counters))

@@ -1,7 +1,6 @@
 use std::ffi::OsStr;
 use std::fmt;
 
-use heim_common::units::Time;
 use heim_common::prelude::*;
 use heim_common::units::Information;
 
@@ -49,7 +48,7 @@ impl IoCounters {
     }
 
     /// Returns time of ratio busy.
-    pub fn busy_time(&self) -> Time {
+    pub fn busy_time(&self) -> f64 {
         self.as_ref().busy_time()
     }
 }
