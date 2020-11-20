@@ -69,7 +69,7 @@ where
                     Err(e) => return Some(Err(e)),
                 };
                 // https://docs.microsoft.com/zh-tw/archive/blogs/askcore/windows-performance-monitor-disk-counters-explained
-                let idle_time = unsafe { *perf.IdleTime.QuadPart() as f64 } * 10.0;
+                let idle_time = unsafe { *perf.IdleTime.QuadPart() as f64 };
                 let read_bytes = unsafe { *perf.BytesRead.QuadPart() as u64 };
                 let write_bytes = unsafe { *perf.BytesWritten.QuadPart() as u64 };
                 let read_time = unsafe { *perf.ReadTime.QuadPart() as f64 };
