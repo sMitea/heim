@@ -27,7 +27,7 @@ pub struct IoCounters {
     write_count: u64,
     read_bytes: Information,
     write_bytes: Information,
-    busy_time: f64,
+    busy_time: Time,
     read_merged_count: u64,
     write_merged_count: Time,
 }
@@ -58,7 +58,7 @@ impl IoCounters {
     }
 
     pub fn idle_time(&self) -> Time {
-        Time::new::<time::second>(seconds as f64)
+        Time::new::<time::second>(0)
     }
 
     // Based on the sysstat code:
