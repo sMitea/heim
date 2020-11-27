@@ -45,7 +45,6 @@ impl Platform {
         match self.version.wProductType {
             winnt::VER_NT_WORKSTATION => "Windows",
             winnt::VER_NT_SERVER => "Windows Server",
-            winut::VER_NT_DOMAIN_CONTROLLER => "Windows Server",
             other => unreachable!("Unknown Windows product type: {}", other),
         }
     }
