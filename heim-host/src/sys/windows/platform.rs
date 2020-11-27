@@ -45,6 +45,7 @@ impl Platform {
         match self.version.wProductType {
             winnt::VER_NT_WORKSTATION => "Windows",
             winnt::VER_NT_SERVER => "Windows Server",
+            winut::VER_NT_DOMAIN_CONTROLLER => "Windows Server",
             other => unreachable!("Unknown Windows product type: {}", other),
         }
     }
@@ -58,8 +59,10 @@ impl Platform {
         let is_workstation = self.version.wProductType == winnt::VER_NT_WORKSTATION;
 
         match (major, minor) {
-            (10, 0) => "10",
-            (6, 3) => "8.1",
+            (10, 0) if is_workstation => "10",
+            (10, 0) if !is_workstation => "2016",
+            (6, 3) if is_workstation => "8.1",
+            (6, 3) if !is_workstation => "2012 R2",
             (6, 2) if is_workstation => "8",
             (6, 2) if !is_workstation => "2012",
             (6, 1) if is_workstation => "7",
